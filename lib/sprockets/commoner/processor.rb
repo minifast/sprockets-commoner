@@ -60,13 +60,14 @@ module Sprockets
         env.register_postprocessor('application/javascript', self.new(env.root, *args, **kwargs))
       end
 
-      attr_reader :include, :exclude, :babel_exclude, :transform_options
-      def initialize(root, include: [root], exclude: ['vendor/bundle'], babel_exclude: [/node_modules/], transform_options: [])
+      attr_reader :include, :exclude, :babel_exclude, :transform_options, :input_options
+      def initialize(root, include: [root], exclude: ['vendor/bundle'], babel_exclude: [/node_modules/], transform_options: [], input_options: {})
         @root = root
         @include = include.map {|path| expand_to_root(path, root) }
         @exclude = exclude.map {|path| expand_to_root(path, root) }
         @babel_exclude = babel_exclude.map {|path| expand_to_root(path, root) }
         @transform_options = transform_options.map {|(path, options)| [expand_to_root(path, root), options]}
+        @input_options = input_options
         super(root, 'NODE_PATH' => JS_PACKAGE_PATH)
       end
 
@@ -215,7 +216,7 @@ module Sprockets
             'moduleRoot' => nil,
             'sourceRoot' => @env.root,
             'sourceMaps' => Commoner.sprockets4?,
-          }
+          }.merge(input_options)
         end
 
         def resolve(path, **kargs)
